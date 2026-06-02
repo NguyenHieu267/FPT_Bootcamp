@@ -1,6 +1,6 @@
 # FPT Bootcamp
 
-This repository is used to store all materials and code learned during the FPT Bootcamp.
+This repository is used to store all materials and code learned during the FPT Bootcamp 2026.
 
 ## Overview
 - Contains knowledge, practice code, and homework (mini project).
