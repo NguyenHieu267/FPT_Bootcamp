@@ -1,0 +1,50 @@
+bootargs=console=ttyS0,115200 earlyprintk root=/dev/mtdblock3 rootfstype=squashfs rootwait net.ifnames=0 biosdevname=0
+bootcmd=run distro_bootcmd;sf probe;sf read 0x80c00000 0x0f0000 0x4000;sf read 0x80008000 0x100000 0x800000;bootz 0x80008000 - 0x80c00000
+bootdelay=0
+baudrate=115200
+preboot=
+arch=arm
+cpu=arm926ejs
+board=sunxi
+board_name=sunxi
+soc=sunxi
+preboot=usb start
+stdin=serial,usbkbd
+stdout=serial,vga
+stderr=serial,vga
+bootm_size=0x1700000
+kernel_addr_r=0x80500000
+fdt_addr_r=0x80C00000
+scriptaddr=0x80C50000
+pxefile_addr_r=0x80D00000
+ramdisk_addr_r=0x80D50000
+dfu_alt_info_ram=kernel ram 0x80500000 0x1000000;fdt ram 0x80C00000 0x100000;ramdisk ram 0x80D50000 0x4000000
+fdtfile=suniv-f1c100s-licheepi-nano-with-lcd.dtb
+console=ttyS0,115200
+mtdids=
+mtdparts=
+uuid_gpt_esp=c12a7328-f81f-11d2-ba4b-00a0c93ec93b
+uuid_gpt_system=69dad710-2ce4-4e3c-b16c-21a1d49abed3
+partitions=name=loader1,start=8k,size=32k,uuid=${uuid_gpt_loader1};name=loader2,size=984k,uuid=${uuid_gpt_loader2};name=esp,size=128M,bootable,uuid=${uuid_gpt_esp};name=system,size=-,uuid=${uuid_gpt_system};
+mmc_boot=if mmc dev ${devnum}; then devtype=mmc; run scan_dev_for_boot_part; fi
+boot_net_usb_start=usb start
+usb_boot=usb start; if usb dev ${devnum}; then devtype=usb; run scan_dev_for_boot_part; fi
+boot_prefixes=/ /boot/
+boot_scripts=boot.scr.uimg boot.scr
+boot_script_dhcp=boot.scr.uimg
+boot_targets=fel mmc_auto usb0 
+boot_syslinux_conf=extlinux/extlinux.conf
+boot_extlinux=sysboot ${devtype} ${devnum}:${distro_bootpart} any ${scriptaddr} ${prefix}${boot_syslinux_conf}
+scan_dev_for_extlinux=if test -e ${devtype} ${devnum}:${distro_bootpart} ${prefix}${boot_syslinux_conf}; then echo Found ${prefix}${boot_syslinux_conf}; run boot_extlinux; echo SCRIPT FAILED: continuing...; fi
+boot_a_script=load ${devtype} ${devnum}:${distro_bootpart} ${scriptaddr} ${prefix}${script}; source ${scriptaddr}
+scan_dev_for_scripts=for script in ${boot_scripts}; do if test -e ${devtype} ${devnum}:${distro_bootpart} ${prefix}${script}; then echo Found U-Boot script ${prefix}${script}; run boot_a_script; echo SCRIPT FAILED: continuing...; fi; done
+scan_dev_for_boot=echo Scanning ${devtype} ${devnum}:${distro_bootpart}...; for prefix in ${boot_prefixes}; do run scan_dev_for_extlinux; run scan_dev_for_scripts; done;
+scan_dev_for_boot_part=part list ${devtype} ${devnum} -bootable devplist; env exists devplist || setenv devplist 1; for distro_bootpart in ${devplist}; do if fstype ${devtype} ${devnum}:${distro_bootpart} bootfstype; then run scan_dev_for_boot; fi; done; setenv devplist
+bootcmd_fel=if test -n ${fel_booted} && test -n ${fel_scriptaddr}; then echo '(FEL boot)'; source ${fel_scriptaddr}; fi
+bootcmd_mmc0=devnum=0; run mmc_boot
+bootcmd_mmc1=devnum=1; run mmc_boot
+bootcmd_mmc_auto=if test ${mmc_bootdev} -eq 1; then run bootcmd_mmc1; run bootcmd_mmc0; elif test ${mmc_bootdev} -eq 0; then run bootcmd_mmc0; run bootcmd_mmc1; fi
+bootcmd_usb0=devnum=0; run usb_boot
+distro_bootcmd=for target in ${boot_targets}; do run bootcmd_${target}; done
+
+
