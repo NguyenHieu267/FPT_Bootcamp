@@ -178,6 +178,7 @@ echo "out" > /sys/class/gpio/gpio131/direction
 echo 1 > /sys/class/gpio/gpio131/value
 echo 0 > /sys/class/gpio/gpio131/value
 ```
+![Turn on/off led by commands](https://github.com/user-attachments/assets/8ba4587c-7410-46a8-880c-1a4ac46b92e2)
 
 ## Error
 #### Run "bitbake core-image-minimal" after turn off the terminal 
