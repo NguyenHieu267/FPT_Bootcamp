@@ -14,7 +14,6 @@ Using [yocto](https://www.yoctoproject.org/development/technical-overview/) to e
 ```bash
 sudo apt-get install gawk wget diffstat unzip texinfo gcc-multilib build-essential chrpath socat libsdl1.2-dev xterm emscripten libmpc-dev libgmp3-dev mtd-utils
 ```
-
 **Note:** More informations can be found on Yocto reference manual
 
 #### 2) Download necessary Yocto packaged listed below. Be sure to be in root of home folder.
@@ -74,6 +73,11 @@ TMPDIR = "${HOME}/yocto/tmp" <br>
 RM_OLD_IMAGE = "1" <br>
 INHERIT += "rm_work" <br>
 ```
+#### Optional (Fix multiple definition of yylloc)
+```bash
+BUILD_CFLAGS += "-fcommon"
+BUILD_CXXFLAGS += "-fcommon"
+```
 - For spi flash change DISTRO ?= "poky" to DISTRO ?= "licheepinano-tiny" <br>
 
 **Note:** Please adapt rest of conf/local.conf parameters if necessary. <br>
@@ -112,20 +116,31 @@ lsblk
 ```
 Change the `of=/dev/mmcblk0` part in the command below to the correct drive 
 ```bash
-sudo dd if=~/yocto/tmp/deploy/images/licheepinano-sdcard/core-image-minimal-licheepinano-sdcard.sunxi-sdimg of=/dev/mmcblk0 bs=1024
+sudo dd if=~/yocto/tmp/deploy/images/licheepinano-sdcard/core-image-minimal-licheepinano-sdcard.sunxi-sdimg of=/dev/mmcblk0 bs=1024 # you can add "status=progress" to follow the progress 
 ```
 <img alt="image" src="https://github.com/user-attachments/assets/fab2cb8a-c9f8-4312-9f61-b6c6cd7bceeb"/>
 #### 9.1) Install Serial software (Picocom) and set up board
-1) Install picocom
+1) Install picocom <br>
 ```bash
 sudo apt install picocom
 ```
-2) Set up
-
-3) 
+2) Set up <br>
+- Laptop <-> USB to TTL <-> Lichee Pi Nano
+	GND <-> GND
+	TXD <-> U0RX
+	RXD <-> U0TX
+- Run the command:
+```bash
+sudo picocom -b 115200 /dev/ttyUSB0
+```
+- When the terminal is ready <br>
+<img src="https://github.com/user-attachments/assets/d992c58b-a87a-4866-a7a5-933a06490943" />
+- Connect the USB (micro USB) wire from Lichee Pi Nano to laptop then type `root` <br>
+<img src="https://github.com/user-attachments/assets/b5a0336c-ec50-44b7-8a76-a2bc48d72a8f" />
+<br>3) Handle GPIO using pin E3 (Step 10) <br>
 
 #### For SPI Flash
-#### 8.2) SPI NOR Flash update tool compilation (if valid sunxi-tools installed go to point 10)
+#### 8.2) SPI NOR Flash update tool compilation (if valid sunxi-tools installed go to point 9)
 ```bash
 git clone https://github.com/Icenowy/sunxi-tools.git -b f1c100s-spiflash
 ```
@@ -147,7 +162,7 @@ To do this it is necessary to stop booting U-Boot and enter following commands.<
 **sunxi-fel -p spiflash-write 0 ~/yocto/tmp/deploy/images/licheepinano-spinor/core-image-minimal-licheepinano-spinor.sunxi-spinor**<br>
 
 #### 11) How to handle GPIO from userfs - example (used PE3 as GPIO)<br>
-1. Take a GPIO for instance PE3<br>
+1. Take a GPIO for instance E3 <br>
 ```bash
 echo 131 > /sys/class/gpio/export
 ```
