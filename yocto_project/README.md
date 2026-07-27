@@ -110,25 +110,28 @@ Nano version <br>
 #### For SD CARD
 #### 8.1) Insert SD CARD into dedicated CARD slot and issue following command to write an image
 **Note:** Be 100% sure to provide a valid device name (**of=/dev/sde/mmcblk0**). Wrong name "/dev/sde/mmcblk0" dameage Your system file ! <br> 
-You can check using this command (Look through the list for a drive with a capacity matching your memory card (e.g., 8GB, 16GB, 32GB))
+You can check using this command (Look through the list for a drive with a capacity matching your memory card (e.g., 8GB, 16GB, 32GB)) <br>
 ```bash
 lsblk
 ```
-Change the `of=/dev/mmcblk0` part in the command below to the correct drive 
+Change the `of=/dev/mmcblk0` part in the command below to the correct drive <br>
 ```bash
 sudo dd if=~/yocto/tmp/deploy/images/licheepinano-sdcard/core-image-minimal-licheepinano-sdcard.sunxi-sdimg of=/dev/mmcblk0 bs=1024 # you can add "status=progress" to follow the progress 
 ```
-<img alt="image" src="https://github.com/user-attachments/assets/fab2cb8a-c9f8-4312-9f61-b6c6cd7bceeb"/>
+<img alt="image" src="https://github.com/user-attachments/assets/fab2cb8a-c9f8-4312-9f61-b6c6cd7bceeb"/> <br>
 #### 9.1) Install Serial software (Picocom) and set up board
 1) Install picocom <br>
 ```bash
 sudo apt install picocom
 ```
 2) Set up <br>
-- Laptop <-> USB to TTL <-> Lichee Pi Nano
-	GND <-> GND
-	TXD <-> U0RX
-	RXD <-> U0TX
+
+| USB-TTL | Lichee Pi Nano |
+|----------|----------------|
+| GND | GND |
+| TXD | U0RX |
+| RXD | U0TX |
+
 - Run the command:
 ```bash
 sudo picocom -b 115200 /dev/ttyUSB0
@@ -175,12 +178,13 @@ echo "out" > /sys/class/gpio/gpio131/direction
 echo 1 > /sys/class/gpio/gpio131/value
 echo 0 > /sys/class/gpio/gpio131/value
 ```
+
 ## Error
-- Run "bitbake core-image-minimal" after turn off the terminal 
+#### Run "bitbake core-image-minimal" after turn off the terminal 
 <img alt="image" src="https://github.com/user-attachments/assets/bd0f26b1-d1e4-4c07-9478-bd5dd25390c3" /> <br>
 You must run "source oe-init-build-env ~/yocto/build/licheepinano" before run any commands if you open new terminal
 
-- If you failed into some error like this
+#### If you failed into some error like this
 ```bash
 Summary: 1 task failed:
   /home/nghieu/yocto/poky/meta-licheepinano/recipes-kernel/linux/linux-suniv_5.2.bb:do_compile
@@ -196,6 +200,29 @@ do_configure_prepend() {
     sed -i 's/YYLTYPE yylloc;/extern YYLTYPE yylloc;/g' ${S}/scripts/dtc/dtc-lexer.l
     sed -i 's/YYLTYPE yylloc;/extern YYLTYPE yylloc;/g' ${S}/scripts/dtc/dtc-lexer.lex.c_shipped 2>/dev/null || true
 }
+```
+
+
+#### `tar: Cannot open: Bad address`
+Occurs because Ubuntu 22.04 ships a newer `tar` version that conflicts with Yocto's `pseudo` <br>
+- Download Tar 1.30 <br>
+```bash
+mkdir -p ~/yocto/old_tar
+cd ~/yocto/old_tar
+wget http://archive.ubuntu.com/ubuntu/pool/main/t/tar/tar_1.30+dfsg-7_amd64.deb
+dpkg -x tar_1.30+dfsg-7_amd64.deb .
+```
+- Export Old Tar <br>
+```bash
+export PATH="$HOME/yocto/old_tar/bin:$PATH"
+```
+> Run this command every time you open a new terminal.
+
+- Resume Build <br>
+```bash
+rm -rf ~/yocto/tmp/hosttools
+bitbake -c cleansstate pseudo-native
+bitbake core-image-minimal
 ```
 
 ## References
